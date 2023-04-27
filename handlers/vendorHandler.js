@@ -84,7 +84,7 @@ router.put("/:id", async (req, res) => {
     vendor.content = content;
     await vendor.save();
 
-    res.json({ data: account });
+    res.json({ data: vendor });
     return;
   } catch (error) {
     res.status(400).json({
