@@ -29,4 +29,6 @@ Token.init(
   }
 );
 
+Token.removeAttribute('id');
+
 module.exports = Token;

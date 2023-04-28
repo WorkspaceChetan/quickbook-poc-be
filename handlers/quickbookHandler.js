@@ -97,7 +97,7 @@ router.get("/retrieveToken", async (req, res) => {
 });
 
 const checkHeader = async (req, res, next) => {
-  const { tokenid } = req.headers;
+  const tokenid = req.headers.authorization;
   const tokenRecord = await Token.findOne({ where: { tokenid } });
 
   if (tokenRecord === null) {
@@ -189,6 +189,7 @@ router.get("/sync", checkHeader, async (req, res) => {
       message: error.message,
       trace: error.stack,
       isError: true,
+      error
     });
   }
 });
