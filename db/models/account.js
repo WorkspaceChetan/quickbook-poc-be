@@ -17,6 +17,9 @@ Account.init(
     content: {
       type: DataTypes.TEXT,
     },
+    qb_data: {
+      type: DataTypes.TEXT,
+    },
   },
   {
     // Use the DbConnection instance for the connection
@@ -26,8 +29,8 @@ Account.init(
     // Set the table name for the model
     tableName: "account",
     // Ignore createdAt and Updated AT
-    createdAt:false,
-    updatedAt:false
+    createdAt: false,
+    updatedAt: false,
   }
 );
 

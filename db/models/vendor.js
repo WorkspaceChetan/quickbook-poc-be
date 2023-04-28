@@ -17,6 +17,9 @@ Venodr.init(
     content: {
       type: DataTypes.TEXT,
     },
+    qb_data: {
+      type: DataTypes.TEXT,
+    },
   },
   {
     // Use the DbConnection instance for the connection
@@ -26,8 +29,8 @@ Venodr.init(
     // Set the table name for the model
     tableName: "vendor",
     // Ignore createdAt and Updated AT
-    createdAt:false,
-    updatedAt:false
+    createdAt: false,
+    updatedAt: false,
   }
 );
 
