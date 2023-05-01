@@ -26,6 +26,11 @@ module.exports = {
           syncUrl:
             "v3/company/##companyId##/vendor?minorversion=##minorVersion##",
         },
+        {
+          tblname: "users",
+          syncUrl:
+            "v3/company/##companyId##/user?minorversion=##minorVersion##",
+        },
       ],
       {}
     );
