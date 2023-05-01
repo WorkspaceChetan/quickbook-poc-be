@@ -13,22 +13,22 @@ module.exports = {
      * }], {});
      */
 
-    await queryInterface.bulkInsert(
-      "config",
-      [
-        {
-          tblname: "account",
-          syncUrl:
-            "v3/company/##companyId##/account?minorversion=##minorVersion##",
-        },
-        {
-          tblname: "vendor",
-          syncUrl:
-            "v3/company/##companyId##/vendor?minorversion=##minorVersion##",
-        },
-      ],
-      {}
-    );
+    // await queryInterface.bulkInsert(
+    //   "config",
+    //   [
+    //     {
+    //       tblname: "account",
+    //       syncUrl:
+    //         "v3/company/##companyId##/account?minorversion=##minorVersion##",
+    //     },
+    //     {
+    //       tblname: "vendor",
+    //       syncUrl:
+    //         "v3/company/##companyId##/vendor?minorversion=##minorVersion##",
+    //     },
+    //   ],
+    //   {}
+    // );
   },
 
   async down(queryInterface, Sequelize) {
@@ -39,6 +39,6 @@ module.exports = {
      * await queryInterface.bulkDelete('People', null, {});
      */
 
-    await queryInterface.bulkDelete("config", null, {});
+    // await queryInterface.bulkDelete("config", null, {});
   },
 };

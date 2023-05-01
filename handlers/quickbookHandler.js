@@ -97,18 +97,50 @@ router.get("/retrieveToken", async (req, res) => {
 });
 
 const checkHeader = async (req, res, next) => {
-  const tokenid = req.headers.authorization;
-  const tokenRecord = await Token.findOne({ where: { tokenid } });
+  try {
+    const tokenid = req.headers.authorization;
 
-  if (tokenRecord === null) {
+    const tokenRecord = await Token.findOne({ where: { tokenid } });
+
+    if (tokenRecord === null) {
+      return res.status(200).json({
+        isError: true,
+        message: "token not found",
+      });
+    }
+
+    oauthClient.getToken().setToken(JSON.parse(tokenRecord.fulltoken));
+
+    if (!oauthClient.getToken().isRefreshTokenValid()) {
+      tokenRecord.destroy();
+      
+      return res.status(200).json({
+        isError: true,
+        message: "token not found",
+      });
+    }
+
+    if (!oauthClient.getToken().isAccessTokenValid()) {
+      const authResponse = await oauthClient.refresh();
+
+      const newfulltoken = authResponse.getJson();
+
+      await Token.create({
+        tokenid: newfulltoken.refresh_token,
+        fulltoken: JSON.stringify(newfulltoken),
+      });
+
+      tokenRecord.destroy();
+    }
+
+    next();
+  } catch (error) {
     return res.status(200).json({
       isError: true,
-      message: "token not found",
+      message: error.message,
+      error,
     });
   }
-
-  oauthClient.getToken().setToken(JSON.parse(tokenRecord.fulltoken));
-  next();
 };
 
 router.get("/sync", checkHeader, async (req, res) => {
@@ -160,11 +192,13 @@ router.get("/sync", checkHeader, async (req, res) => {
     fullUrl = fullUrl.replace("##companyId##", companyID);
     fullUrl = fullUrl.replace("##minorVersion##", minorversion);
 
-    const { content } = tblRecord;
+    const { content, qb_data } = tblRecord;
+    const postBody = { ...JSON.parse(qb_data), ...JSON.parse(content) };
+
     const resp = await oauthClient.makeApiCall({
       method: "POST",
       url: fullUrl,
-      body: JSON.parse(content),
+      body: postBody,
     });
 
     switch (tbl) {
@@ -189,6 +223,7 @@ router.get("/sync", checkHeader, async (req, res) => {
       message: error.message,
       trace: error.stack,
       isError: true,
+      error,
     });
   }
 });
