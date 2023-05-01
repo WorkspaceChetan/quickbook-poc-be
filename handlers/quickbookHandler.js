@@ -169,11 +169,11 @@ router.get("/sync", checkHeader, async (req, res) => {
 
     switch (tbl) {
       case "account": {
-        tblRecord.content = JSON.stringify(resp.json.Account);
+        tblRecord.qb_data = JSON.stringify(resp.json.Account);
         break;
       }
       case "vendor": {
-        tblRecord.content = JSON.stringify(resp.json.Vendor);
+        tblRecord.qb_data = JSON.stringify(resp.json.Vendor);
         break;
       }
     }
@@ -189,7 +189,7 @@ router.get("/sync", checkHeader, async (req, res) => {
       message: error.message,
       trace: error.stack,
       isError: true,
-      error
+      error,
     });
   }
 });
