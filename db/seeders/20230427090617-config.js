@@ -12,7 +12,6 @@ module.exports = {
      *   isBetaMember: false
      * }], {});
      */
-
     // await queryInterface.bulkInsert(
     //   "config",
     //   [
@@ -38,7 +37,6 @@ module.exports = {
      * Example:
      * await queryInterface.bulkDelete('People', null, {});
      */
-
     // await queryInterface.bulkDelete("config", null, {});
   },
 };

@@ -1,9 +1,9 @@
 const { DataTypes, Model } = require("sequelize");
 const DbConnection = require("../../dbConn");
 
-class Users extends Model {}
+class User extends Model {}
 
-Users.init(
+User.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -29,6 +29,11 @@ Users.init(
   {
     sequelize: DbConnection.getConnection(),
     modelName: "User",
-    tableName: "user",
+    tableName: "users",
+
+    createdAt: false,
+    updatedAt: false,
   }
 );
+
+module.exports = User;
