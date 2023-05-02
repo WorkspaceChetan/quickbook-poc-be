@@ -15,7 +15,7 @@ let oauthClient = new OAuthClient({
   clientId: process.env.INTUIT_CLIENT_ID,
   clientSecret: process.env.INTUIT_CLIENT_SECRET,
   environment: "sandbox",
-  redirectUri: "http://localhost:5000/qb/callback",
+  redirectUri: process.env.Back_URL + "/qb/callback",
 });
 
 router.get("/test", (req, res) => {
@@ -41,7 +41,9 @@ router.get("/callback", async (req, res) => {
       fulltoken: JSON.stringify(fulltoken),
     });
 
-    return res.redirect(`http://localhost:3000?tokenid=${tokenRecord.tokenid}`);
+    return res.redirect(
+      `${process.env.FRONT_URL}?tokenid=${tokenRecord.tokenid}`
+    );
   } catch (error) {
     res.status(400).json({
       message: error.message,
@@ -113,7 +115,7 @@ const checkHeader = async (req, res, next) => {
 
     if (!oauthClient.getToken().isRefreshTokenValid()) {
       tokenRecord.destroy();
-      
+
       return res.status(200).json({
         isError: true,
         message: "token not found",

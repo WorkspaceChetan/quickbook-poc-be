@@ -6,7 +6,7 @@ require("dotenv").config();
 // bring handlers to bind with routes
 var handlers = require("./handlers");
 
-var allowedOrigins = ["http://localhost:3000"];
+var allowedOrigins = [process.env.FRONT_URL];
 
 const app = express();
 
