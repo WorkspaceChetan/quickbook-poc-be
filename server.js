@@ -37,6 +37,7 @@ app.use("/api/vendor", handlers.vendorHandler);
 app.use("/qb", handlers.quickbookHandler);
 // app.use("/api/user", handlers.userHandler);
 app.use("/api/user", handlers.userHandler);
+app.use("/api/employee", handlers.employeeHandler);
 
 app.get("/", (_, res) => {
   res.send("Hello world");
