@@ -32,10 +32,8 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // /cron and /usershealth routes bind with respective handlers
-app.use("/api/account", handlers.accountHandler);
-app.use("/api/vendor", handlers.vendorHandler);
+
 app.use("/qb", handlers.quickbookHandler);
-app.use("/api/user", handlers.userHandler);
 
 app.get("/", (_, res) => {
   res.send("Hello world");

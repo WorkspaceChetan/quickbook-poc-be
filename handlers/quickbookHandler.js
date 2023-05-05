@@ -3,8 +3,6 @@ const OAuthClient = require("intuit-oauth");
 const router = express.Router();
 const fs = require("fs");
 
-const Token = require("../db/models/token");
-
 let oauthClient = new OAuthClient({
   clientId: process.env.INTUIT_CLIENT_ID,
   clientSecret: process.env.INTUIT_CLIENT_SECRET,
