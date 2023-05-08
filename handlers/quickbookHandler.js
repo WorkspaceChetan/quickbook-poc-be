@@ -1,7 +1,6 @@
 const express = require("express");
 const OAuthClient = require("intuit-oauth");
 const router = express.Router();
-const fs = require("fs");
 
 let oauthClient = new OAuthClient({
   clientId: process.env.INTUIT_CLIENT_ID,
@@ -14,11 +13,14 @@ router.get("/test", (req, res) => {
   res.status(200).json({});
 });
 
-router.get("/authUri", (_, res) => {
+router.get("/authUri", (req, res) => {
+  const currentUrl = req.query.cb;
+  const encodedUrl = Buffer.from(currentUrl).toString("base64");
   const authUri = oauthClient.authorizeUri({
     scope: [OAuthClient.scopes.Accounting],
-    state: "intuit-test",
+    state: `&cb=${encodedUrl}`,
   });
+
   res.redirect(authUri);
 });
 
@@ -28,14 +30,13 @@ router.get("/callback", async (req, res) => {
 
     const fulltoken = authResponse.getJson();
 
-    const tokenRecord = await Token.create({
-      tokenid: fulltoken.refresh_token,
-      fulltoken: JSON.stringify(fulltoken),
-    });
+    const stateParams = new URLSearchParams(req.query.state);
+    const encodedUrl = stateParams.get("cb");
+    const decodedUrl = Buffer.from(encodedUrl, "base64").toString("utf-8");
+    const tokenData = JSON.stringify(fulltoken);
+    const tokenParam = encodeURI(tokenData);
 
-    return res.redirect(
-      `${process.env.FRONT_URL}?tokenid=${tokenRecord.tokenid}`
-    );
+    return res.redirect(`${decodedUrl}?token=${tokenParam}`);
   } catch (error) {
     res.status(400).json({
       message: error.message,
@@ -45,43 +46,63 @@ router.get("/callback", async (req, res) => {
   }
 });
 
+router.get("/refresh_token", async (req, res) => {
+  const { tokenid } = req.query;
+  const tokenRecord = await Token.findOne({ where: { tokenid } });
+
+  if (tokenRecord === null) {
+    return res.status(200).json({
+      isError: true,
+      message: "token not found",
+    });
+  }
+
+  oauthClient.getToken().setToken(JSON.parse(tokenRecord.fulltoken));
+
+  const authResponse = await oauthClient.refresh();
+
+  const newfulltoken = authResponse.getJson();
+
+  const newTokenRecord = await Token.create({
+    tokenid: newfulltoken.refresh_token,
+    fulltoken: JSON.stringify(newfulltoken),
+  });
+
+  tokenRecord.destroy();
+
+  return res.status(200).json({
+    isError: false,
+    token: newTokenRecord.tokenid,
+  });
+});
+
 const checkHeader = async (req, res, next) => {
   try {
-    const tokenid = req.headers.authorization;
+    const accessToken = req.headers.authorization;
 
-    const tokenRecord = await Token.findOne({ where: { tokenid } });
-
-    if (tokenRecord === null) {
-      return res.status(200).json({
-        isError: true,
-        message: "token not found",
+    if (!accessToken) {
+      return res.status(401).json({
+        message: "Missing access token",
       });
     }
 
-    oauthClient.getToken().setToken(JSON.parse(tokenRecord.fulltoken));
+    const decodeToken = JSON.parse(decodeURI(accessToken));
+
+    oauthClient.getToken().setToken(decodeToken);
 
     if (!oauthClient.getToken().isRefreshTokenValid()) {
-      tokenRecord.destroy();
-
       return res.status(200).json({
         isError: true,
-        message: "token not found",
+        message: "Invalid token not found",
       });
     }
 
     if (!oauthClient.getToken().isAccessTokenValid()) {
       const authResponse = await oauthClient.refresh();
 
-      const newfulltoken = authResponse.getJson();
+      const fulltoken = authResponse.getJson();
 
-      oauthClient.getToken().setToken(newfulltoken.fulltoken);
-
-      await Token.create({
-        tokenid: newfulltoken.refresh_token,
-        fulltoken: JSON.stringify(newfulltoken),
-      });
-
-      tokenRecord.destroy();
+      oauthClient.getToken().setToken(fulltoken);
     }
 
     next();
@@ -96,6 +117,8 @@ const checkHeader = async (req, res, next) => {
 
 router.post("/sync", checkHeader, async (req, res) => {
   const { method, syncUrl, postbody } = req.body;
+  const token = oauthClient.getToken().getToken();
+
   try {
     const url =
       oauthClient.environment == "sandbox"
@@ -110,17 +133,29 @@ router.post("/sync", checkHeader, async (req, res) => {
       body: postbody,
     });
 
+    let data;
+    if (resp.headers["content-type"] === "application/json") {
+      try {
+        data = JSON.parse(resp.json);
+      } catch (error) {
+        data = resp.json;
+      }
+    }
+
     return res.status(200).json({
       isError: false,
-      data: resp.json,
+      data: data,
       message: "",
+      token: token,
     });
   } catch (error) {
+    console.error("Error:", error);
     return res.status(200).json({
       message: error.message,
       data: null,
       isError: true,
       error,
+      token: token,
     });
   }
 });
