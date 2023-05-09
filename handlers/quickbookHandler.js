@@ -35,7 +35,7 @@ router.get("/callback", async (req, res) => {
     const decodedUrl = Buffer.from(encodedUrl, "base64").toString("utf-8");
     const tokenData = JSON.stringify(fulltoken);
     const tokenParam = encodeURI(tokenData);
-
+    console.log("token", tokenParam);
     return res.redirect(`${decodedUrl}?token=${tokenParam}`);
   } catch (error) {
     res.status(400).json({
