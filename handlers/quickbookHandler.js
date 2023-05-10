@@ -2,7 +2,7 @@ const express = require("express");
 const OAuthClient = require("intuit-oauth");
 const router = express.Router();
 
-let oauthClient = new OAuthClient({
+const oauthClient = new OAuthClient({
   clientId: process.env.INTUIT_CLIENT_ID,
   clientSecret: process.env.INTUIT_CLIENT_SECRET,
   environment: "sandbox",
@@ -10,11 +10,13 @@ let oauthClient = new OAuthClient({
 });
 
 router.get("/test", (req, res) => {
-  res.status(200).json({});
+  res.status(200).json({
+    "key":"Success"
+  });
 });
 
 router.get("/authUri", (req, res) => {
-  const currentUrl = req.query.cb;
+  const currentUrl = decodeURI(req.query.cb);
   const encodedUrl = Buffer.from(currentUrl).toString("base64");
   const authUri = oauthClient.authorizeUri({
     scope: [OAuthClient.scopes.Accounting],
@@ -35,7 +37,6 @@ router.get("/callback", async (req, res) => {
     const decodedUrl = Buffer.from(encodedUrl, "base64").toString("utf-8");
     const tokenData = JSON.stringify(fulltoken);
     const tokenParam = encodeURI(tokenData);
-    console.log("token", tokenParam);
     return res.redirect(`${decodedUrl}?token=${tokenParam}`);
   } catch (error) {
     res.status(400).json({
@@ -44,36 +45,6 @@ router.get("/callback", async (req, res) => {
     });
     return;
   }
-});
-
-router.get("/refresh_token", async (req, res) => {
-  const { tokenid } = req.query;
-  const tokenRecord = await Token.findOne({ where: { tokenid } });
-
-  if (tokenRecord === null) {
-    return res.status(200).json({
-      isError: true,
-      message: "token not found",
-    });
-  }
-
-  oauthClient.getToken().setToken(JSON.parse(tokenRecord.fulltoken));
-
-  const authResponse = await oauthClient.refresh();
-
-  const newfulltoken = authResponse.getJson();
-
-  const newTokenRecord = await Token.create({
-    tokenid: newfulltoken.refresh_token,
-    fulltoken: JSON.stringify(newfulltoken),
-  });
-
-  tokenRecord.destroy();
-
-  return res.status(200).json({
-    isError: false,
-    token: newTokenRecord.tokenid,
-  });
 });
 
 const checkHeader = async (req, res, next) => {
@@ -93,7 +64,7 @@ const checkHeader = async (req, res, next) => {
     if (!oauthClient.getToken().isRefreshTokenValid()) {
       return res.status(200).json({
         isError: true,
-        message: "Invalid token not found",
+        message: "Invalid token.",
       });
     }
 
