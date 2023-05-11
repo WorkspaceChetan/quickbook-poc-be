@@ -16,6 +16,7 @@ router.get("/test", (req, res) => {
 router.get("/authUri", (req, res) => {
   const currentUrl = req.query.cb;
   const encodedUrl = Buffer.from(currentUrl).toString("base64");
+  console.log("encoded", encodedUrl);
   const authUri = oauthClient.authorizeUri({
     scope: [OAuthClient.scopes.Accounting],
     state: `&cb=${encodedUrl}`,
