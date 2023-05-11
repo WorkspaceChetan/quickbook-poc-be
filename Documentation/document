@@ -1,0 +1,63 @@
+1. Authorization:
+url = "http://localhost:3000/qb/authUri"
+
+The /qb/authUri route initiates the authorization process with QuickBooks. It generates an authorization URL that your user will be redirected to in order to grant permission to your app to access their QuickBooks data.
+
+Request:
+
+GET /qb/authUri
+Query Parameters:
+cb (optional): A URL encoded callback URL that the user will be redirected to after authorization is complete. This should be provided as a query parameter and will be included as a state parameter in the authorization URL.
+URL: "http://localhost:3000/"
+After encoding, the URL is passed in the "cb" parameter as: "aHR0cDovL2xvY2FsaG9zdDozMDAwL2hhbmRsZXRva2Vu"
+Response:
+
+Redirect to the authorization URL.
+
+URL= http://localhost:3000?token=url_encode_token
+
+2. Sync Endpoint
+Endpoint URL: /sync
+
+Request
+Method: POST
+
+Request Headers:
+Authorization: The access token received during the authorization process, encoded within the header.
+
+Request Body:
+{
+"method": "HTTP_METHOD",
+"syncUrl": "QUICKBOOKS_API_ENDPOINT_URL",
+"postbody": "The request body to send with the API call"
+}
+
+Response
+
+Status Code: 200
+Response Body:
+{
+  "isError": false,
+  "data": {
+    "result": "some data returned by QuickBooks API"
+  },
+  "message": "API call successful",
+  "token": "access token received during authorization process"
+}
+
+Error Response
+Status Code: 200
+
+Response Body:
+{
+  "isError": true,
+  "message": "Error message describing the issue",
+  "data": {
+    "result": "some data returned by QuickBooks API"
+  },
+  "error": {
+    "errorCode": "error code",
+    "errorMessage": "detailed error message"
+  },
+  "token": "access token received during authorization process"
+}
